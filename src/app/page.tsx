@@ -2,7 +2,7 @@ import Multiselect from "../components/Multiselect";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24 bg-white text-black ">
+    <main className="flex min-h-screen flex-col w-screen items-center justify-center p-5 bg-white text-black ">
       <Multiselect />
     </main>
   );

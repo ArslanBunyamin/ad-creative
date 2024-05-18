@@ -9,10 +9,10 @@ import Image from "next/image";
 type Props = {};
 
 const Multiselect = (props: Props) => {
-  const [searchValue, setsearchValue] = useState("");
-  const [addedCharacters, setAddedCharacters] = useState<Character[]>([]);
-  const optionsRef = useRef<HTMLDivElement>(null);
-  const [searchResults, setsearchResults] = useState<Character[]>([]);
+  const [searchValue, setsearchValue] = useState(""); //Inputa girilen yazi.
+  const [addedCharacters, setAddedCharacters] = useState<Character[]>([]); //Eklenen, secilen karakterler.
+  const optionsRef = useRef<HTMLDivElement>(null); // input girilince altta acilan options kisminin ref'i.
+  const [searchResults, setsearchResults] = useState<Character[]>([]); // Arama sonuclari.
 
   const searchHandler = async (searchString: string) => {
     if (searchString === "" || searchString.length < 3) {
@@ -45,7 +45,7 @@ const Multiselect = (props: Props) => {
   };
 
   return (
-    <div className="w-1/2">
+    <div className="md:w-1/2 w-full">
       <div className="flex border rounded-2xl border-slate-400 items-center shadow-md flex-wrap">
         <div className="flex rounded-lg p-1  flex-wrap max-h-24 overflow-y-auto">
           {addedCharacters
@@ -59,6 +59,11 @@ const Multiselect = (props: Props) => {
                     className=" bg-slate-400 p-1 rounded hover:bg-slate-500 transition-colors"
                     type="button"
                     onClick={() => characterSelectHandler(character)}
+                    onKeyUp={(e) => {
+                      if (e.key === " ") {
+                        characterSelectHandler(character);
+                      }
+                    }}
                   >
                     <FaXmark className="text-white" />
                   </button>
@@ -71,7 +76,7 @@ const Multiselect = (props: Props) => {
             className="p-1 w-full outline-none bg-white"
             type="text"
             id="search"
-            placeholder="search a rick"
+            placeholder="search a character"
             onChange={(e) => searchHandler(e.target.value.trim())}
             autoComplete="off"
           />
@@ -89,11 +94,23 @@ const Multiselect = (props: Props) => {
       >
         <ul className="list-none m-0 overflow-y-scroll max-h-64 select-none">
           {searchResults.map((character) => {
-            const splitted = character.name.toLowerCase().split(searchValue);
+            const matchingIndex = character.name
+              .toLowerCase()
+              .search(searchValue); //Aramayla eslesen substringin ilk harfinin indexi.
+            const firstSlice = character.name.slice(0, matchingIndex);
+            const matchingString = character.name.slice(
+              matchingIndex,
+              matchingIndex + searchValue.length
+            );
+            const secondSlice = character.name.slice(
+              matchingIndex + searchValue.length
+            );
+
             return (
               <li
                 key={character.id}
-                className="cursor-pointer hover:bg-slate-100 flex items-center p-1"
+                className="cursor-pointer focus-within:bg-slate-300 flex items-center p-1"
+                tabIndex={1}
               >
                 <input
                   type="checkbox"
@@ -106,7 +123,7 @@ const Multiselect = (props: Props) => {
                       characterSelectHandler(character);
                     }
                   }}
-                  className="size-4"
+                  className="size-4 outline-none"
                   checked={
                     addedCharacters.find((ch) => ch.id == character.id)
                       ? true
@@ -127,9 +144,9 @@ const Multiselect = (props: Props) => {
                     />
                   </div>
                   <div className="pl-2">
-                    <span>{splitted[0]}</span>
-                    <b>{searchValue}</b>
-                    <span>{splitted[1]}</span>
+                    <span>{firstSlice}</span>
+                    <b>{matchingString}</b>
+                    <span>{secondSlice}</span>
                     <div className="text-slate-500">
                       {character.episode.length + " Episodes"}
                     </div>

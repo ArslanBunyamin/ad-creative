@@ -2,7 +2,7 @@
 import { getCharacters, Character } from "rickmortyapi";
 
 
-const getRickApi = async (searchString: string) => {
+const getCharactersFromApi = async (searchString: string) => {
     try {
         const res = await getCharacters({
             name: searchString,
@@ -17,4 +17,4 @@ const getRickApi = async (searchString: string) => {
         console.log(error)
     }
 }
-export default getRickApi
+export default getCharactersFromApi
