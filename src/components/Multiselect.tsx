@@ -9,15 +9,17 @@ import Image from "next/image";
 type Props = {};
 
 const Multiselect = (props: Props) => {
-  const [searchValue, setsearchValue] = useState(""); //Inputa girilen yazi.
-  const [addedCharacters, setAddedCharacters] = useState<Character[]>([]); //Eklenen, secilen karakterler.
-  const optionsRef = useRef<HTMLDivElement>(null); // input girilince altta acilan options kisminin ref'i.
+  const [searchValue, setsearchValue] = useState(""); // Inputa girilen yazi.
+  const [addedCharacters, setAddedCharacters] = useState<Character[]>([]); // Secilen karakterler.
+  const optionsRef = useRef<HTMLDivElement>(null); // Input girilince altta acilan sonuc kisminin ref'i.
   const [searchResults, setsearchResults] = useState<Character[]>([]); // Arama sonuclari.
+  const [charNotFound, setcharNotFound] = useState(false);
 
   const searchHandler = async (searchString: string) => {
+    const hidden = optionsRef.current?.classList.contains("hidden");
     if (searchString === "" || searchString.length < 3) {
       setsearchResults([]);
-      optionsRef.current?.classList.add("hidden");
+      if (!hidden) optionsRef.current?.classList.add("hidden");
       return;
     }
 
@@ -25,12 +27,14 @@ const Multiselect = (props: Props) => {
 
     const res = await getRickApi(searchString);
 
-    optionsRef.current?.classList.remove("hidden");
-
-    if (res) setsearchResults(res);
+    if (res) {
+      setsearchResults(res);
+      setcharNotFound(false);
+      if (hidden) optionsRef.current?.classList.remove("hidden");
+    }
 
     if (!res?.length) {
-      optionsRef.current?.classList.add("hidden");
+      setcharNotFound(true);
     }
   };
 
@@ -92,70 +96,74 @@ const Multiselect = (props: Props) => {
         className="p-2 border rounded-lg border-slate-400 mt-2 shadow-lg hidden"
         ref={optionsRef}
       >
-        <ul className="list-none m-0 overflow-y-scroll max-h-64 select-none">
-          {searchResults.map((character) => {
-            const matchingIndex = character.name
-              .toLowerCase()
-              .search(searchValue); //Aramayla eslesen substringin ilk harfinin indexi.
-            const firstSlice = character.name.slice(0, matchingIndex);
-            const matchingString = character.name.slice(
-              matchingIndex,
-              matchingIndex + searchValue.length
-            );
-            const secondSlice = character.name.slice(
-              matchingIndex + searchValue.length
-            );
+        {charNotFound ? (
+          <div className="p-1 text-center">Not Found!</div>
+        ) : (
+          <ul className="list-none m-0 overflow-y-scroll max-h-64 select-none">
+            {searchResults.map((character) => {
+              const matchingIndex = character.name
+                .toLowerCase()
+                .search(searchValue);
+              const firstSlice = character.name.slice(0, matchingIndex);
+              const matchingString = character.name.slice(
+                matchingIndex,
+                matchingIndex + searchValue.length
+              );
+              const secondSlice = character.name.slice(
+                matchingIndex + searchValue.length
+              );
 
-            return (
-              <li
-                key={character.id}
-                className="cursor-pointer focus-within:bg-slate-300 flex items-center p-1"
-                tabIndex={1}
-              >
-                <input
-                  type="checkbox"
-                  id={"" + character.id}
-                  onChange={(e) => {
-                    characterSelectHandler(character);
-                  }}
-                  onKeyUp={(e) => {
-                    if (e.key === " ") {
-                      characterSelectHandler(character);
-                    }
-                  }}
-                  className="size-4 outline-none"
-                  checked={
-                    addedCharacters.find((ch) => ch.id == character.id)
-                      ? true
-                      : false
-                  }
-                />
-                <label
-                  className="cursor-pointer p-1 flex w-full"
-                  htmlFor={"" + character.id}
+              return (
+                <li
+                  key={character.id}
+                  className="cursor-pointer focus-within:bg-slate-300 flex items-center p-1"
+                  tabIndex={1}
                 >
-                  <div className="img-container size-12">
-                    <Image
-                      src={character.image}
-                      alt={character.name}
-                      width={100}
-                      height={100}
-                      className="rounded-lg"
-                    />
-                  </div>
-                  <div className="pl-2">
-                    <span>{firstSlice}</span>
-                    <b>{matchingString}</b>
-                    <span>{secondSlice}</span>
-                    <div className="text-slate-500">
-                      {character.episode.length + " Episodes"}
+                  <input
+                    type="checkbox"
+                    id={"" + character.id}
+                    onChange={(e) => {
+                      characterSelectHandler(character);
+                    }}
+                    onKeyUp={(e) => {
+                      if (e.key === " ") {
+                        characterSelectHandler(character);
+                      }
+                    }}
+                    className="size-4 outline-none"
+                    checked={
+                      addedCharacters.find((ch) => ch.id == character.id)
+                        ? true
+                        : false
+                    }
+                  />
+                  <label
+                    className="cursor-pointer p-1 flex w-full"
+                    htmlFor={"" + character.id}
+                  >
+                    <div className="img-container size-12">
+                      <Image
+                        src={character.image}
+                        alt={character.name}
+                        width={100}
+                        height={100}
+                        className="rounded-lg"
+                      />
                     </div>
-                  </div>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
+                    <div className="pl-2">
+                      <span>{firstSlice}</span>
+                      <b>{matchingString}</b>
+                      <span>{secondSlice}</span>
+                      <div className="text-slate-500">
+                        {character.episode.length + " Episodes"}
+                      </div>
+                    </div>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
